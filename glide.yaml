@@ -9,6 +9,7 @@ import:
   subpackages:
   - lib
 - package: github.com/IBM/ubiquity
+  version: fix/faulty_multipath_devices_option1
   subpackages:
   - remote
   - resources
