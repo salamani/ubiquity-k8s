@@ -30,7 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
-
+u
 	"k8s.io/api/core/v1"
 )
 
@@ -120,7 +120,7 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 		return nil, fmt.Errorf("options missing PVC %#v", options)
 	}
 
-	request_uuid := fmt.Sprintf("%s", uuid.NewUUID)
+	request_uuid := fmt.Sprintf("%s", uuid.NewUUID())
 
 	// override volume name according to label
 	pvName, ok := options.PVC.Labels["pv-name"]
