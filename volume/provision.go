@@ -120,6 +120,8 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 		return nil, fmt.Errorf("options missing PVC %#v", options)
 	}
 
+	request_uuid := fmt.Sprintf("%s", uuid.NewUUID)
+
 	// override volume name according to label
 	pvName, ok := options.PVC.Labels["pv-name"]
 	if ok {
@@ -130,10 +132,10 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 	if !exists {
 		return nil, fmt.Errorf("options.PVC.Spec.Resources.Requests does not contain capacity")
 	}
-	fmt.Printf("PVC with capacity %d", capacity.Value())
+	fmt.Printf("%s PVC with capacity %d", request_uuid, capacity.Value())
 	capacityMB := capacity.Value() / (1024 * 1024)
 
-	volume_details, err := p.createVolume(options, capacityMB)
+	volume_details, err := p.createVolume(options, capacityMB, request_uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -199,8 +201,8 @@ func (p *flexProvisioner) Delete(volume *v1.PersistentVolume) error {
 	return nil
 }
 
-func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacity int64) (map[string]string, error) {
-	msg := fmt.Sprintf("Create volume name [%s]", options.PVName)
+func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacity int64, request_uuid string) (map[string]string, error) {
+	msg := fmt.Sprintf("Create volume name [%s]. id %s", options.PVName, request_uuid)
 	p.logger.Printf("ENTER : " + msg)
 	defer p.logger.Printf("EXIT : " + msg)
 
@@ -217,16 +219,16 @@ func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacit
 		return nil, fmt.Errorf("backend is not specified")
 	}
 	b := backendName.(string)
-	createVolumeRequest := resources.CreateVolumeRequest{Name: options.PVName, Backend: b, Opts: ubiquityParams}
+	createVolumeRequest := resources.CreateVolumeRequest{Name: options.PVName, Backend: b, Opts: ubiquityParams, Id: fmt.Sprintf("%v", request_uuid)}
 	err := p.ubiquityClient.CreateVolume(createVolumeRequest)
 	if err != nil {
-		return nil, fmt.Errorf("error creating volume: %v", err)
+		return nil, fmt.Errorf("%s - error creating volume: %v.", request_uuid, err)
 	}
 
 	getVolumeConfigRequest := resources.GetVolumeConfigRequest{Name: options.PVName}
 	volumeConfig, err := p.ubiquityClient.GetVolumeConfig(getVolumeConfigRequest)
 	if err != nil {
-		return nil, fmt.Errorf("error getting volume config details: %v", err)
+		return nil, fmt.Errorf("%s - error getting volume config details: %v", request_uuid, err)
 	}
 
 	flexVolumeConfig := make(map[string]string)
