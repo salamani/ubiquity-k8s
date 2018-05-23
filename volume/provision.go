@@ -133,7 +133,8 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 	if !exists {
 		return nil, fmt.Errorf("options.PVC.Spec.Resources.Requests does not contain capacity")
 	}
-	fmt.Printf("%s PVC with capacity %d", request_uuid, capacity.Value()) // why is this not log??
+	msg := fmt.SPrintf("PVC with capacity %d. [request id = %s]",  capacity.Value(), request_uuid)
+	p.logger.Printf(msg)
 	capacityMB := capacity.Value() / (1024 * 1024)
 
 	volume_details, err := p.createVolume(options, capacityMB, request_context)
@@ -203,7 +204,7 @@ func (p *flexProvisioner) Delete(volume *v1.PersistentVolume) error {
 }
 
 func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacity int64, request_context resources.RequestContext) (map[string]string, error) {
-	msg := fmt.Sprintf("Create volume name [%s]. id [%s]", options.PVName, request_context.Id)
+	msg := fmt.Sprintf("Create volume name [%s]. [request id = %s]", options.PVName, request_context.Id)
 	p.logger.Printf("ENTER : " + msg)
 	defer p.logger.Printf("EXIT : " + msg)
 
