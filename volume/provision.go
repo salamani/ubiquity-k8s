@@ -133,7 +133,7 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 	if !exists {
 		return nil, fmt.Errorf("options.PVC.Spec.Resources.Requests does not contain capacity")
 	}
-	msg := fmt.SPrintf("PVC with capacity %d. [request id = %s]",  capacity.Value(), request_uuid)
+	msg := fmt.Sprintf("PVC with capacity %d. [request id = %s]",  capacity.Value(), request_uuid)
 	p.logger.Printf(msg)
 	capacityMB := capacity.Value() / (1024 * 1024)
 
