@@ -60,19 +60,28 @@ func NewFlexProvisioner(logger *log.Logger, ubiquityClient resources.StorageClie
 	return newFlexProvisionerInternal(logger, ubiquityClient, config)
 }
 
+func getNewRequestContext() resources.RequestContext{
+	request_uuid := fmt.Sprintf("%s", uuid.NewUUID())
+	return resources.RequestContext{Id: request_uuid}
+}
+func getContextRequestString(context resources.RequestContext) string{
+	return fmt.Sprintf("request-id=%s", context.Id)
+}
+
 func newFlexProvisionerInternal(logger *log.Logger, ubiquityClient resources.StorageClient, config resources.UbiquityPluginConfig) (*flexProvisioner, error) {
 	var identity types.UID
 	identityPath := path.Join(config.LogPath, identityFile)
+	request_context := getNewRequestContext()
 	if _, err := os.Stat(identityPath); os.IsNotExist(err) {
 		identity = uuid.NewUUID()
 		err := ioutil.WriteFile(identityPath, []byte(identity), 0600)
 		if err != nil {
-			logger.Printf("Error writing identity file %s! %v", identityPath, err)
+			logger.Printf("Error writing identity file %s! %v  [%s]", identityPath, err, getContextRequestString(request_context))
 		}
 	} else {
 		read, err := ioutil.ReadFile(identityPath)
 		if err != nil {
-			logger.Printf("Error reading identity file %s! %v", config.LogPath, err)
+			logger.Printf("Error reading identity file %s! %v  [%s]", config.LogPath, err, getContextRequestString(request_context))
 		}
 		identity = types.UID(strings.TrimSpace(string(read)))
 	}
@@ -87,8 +96,8 @@ func newFlexProvisionerInternal(logger *log.Logger, ubiquityClient resources.Sto
 		nodeEnv:        nodeEnv,
 	}
 
-	activateRequest := resources.ActivateRequest{Backends: config.Backends}
-	logger.Printf("activating backend %s \n", config.Backends)
+	activateRequest := resources.ActivateRequest{Backends: config.Backends, Context : request_context}
+	logger.Printf("activating backend %s	[%s] \n", config.Backends, getContextRequestString(request_context))
 	err := provisioner.ubiquityClient.Activate(activateRequest)
 
 	return provisioner, err
@@ -120,8 +129,7 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 		return nil, fmt.Errorf("options missing PVC %#v", options)
 	}
 
-	request_uuid := fmt.Sprintf("%s", uuid.NewUUID())
-	request_context := resources.RequestContext{Id: request_uuid}
+	request_context := getNewRequestContext()
 
 	// override volume name according to label
 	pvName, ok := options.PVC.Labels["pv-name"]
@@ -133,7 +141,7 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 	if !exists {
 		return nil, fmt.Errorf("options.PVC.Spec.Resources.Requests does not contain capacity")
 	}
-	msg := fmt.Sprintf("PVC with capacity %d. [request id = %s]",  capacity.Value(), request_uuid)
+	msg := fmt.Sprintf("PVC with capacity %d. [%s]",  capacity.Value(), getContextRequestString(request_context))
 	p.logger.Printf(msg)
 	capacityMB := capacity.Value() / (1024 * 1024)
 
@@ -203,8 +211,8 @@ func (p *flexProvisioner) Delete(volume *v1.PersistentVolume) error {
 	return nil
 }
 
-func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacity int64, request_context resources.RequestContext) (map[string]string, error) {
-	msg := fmt.Sprintf("Create volume name [%s]. [request id = %s]", options.PVName, request_context.Id)
+func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacity int64, requestContext resources.RequestContext) (map[string]string, error) {
+	msg := fmt.Sprintf("Create volume name [%s]. [%s]", options.PVName, getContextRequestString(requestContext))
 	p.logger.Printf("ENTER : " + msg)
 	defer p.logger.Printf("EXIT : " + msg)
 
@@ -221,16 +229,16 @@ func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacit
 		return nil, fmt.Errorf("backend is not specified")
 	}
 	b := backendName.(string)
-	createVolumeRequest := resources.CreateVolumeRequest{Name: options.PVName, Backend: b, Opts: ubiquityParams, Context: request_context}
+	createVolumeRequest := resources.CreateVolumeRequest{Name: options.PVName, Backend: b, Opts: ubiquityParams, Context: requestContext}
 	err := p.ubiquityClient.CreateVolume(createVolumeRequest)
 	if err != nil {
-		return nil, fmt.Errorf("%s - error creating volume: %v.", request_context.Id, err)
+		return nil, fmt.Errorf("error creating volume: %v. [%s]", err, getContextRequestString(requestContext))
 	}
 
 	getVolumeConfigRequest := resources.GetVolumeConfigRequest{Name: options.PVName}
 	volumeConfig, err := p.ubiquityClient.GetVolumeConfig(getVolumeConfigRequest)
 	if err != nil {
-		return nil, fmt.Errorf("%s - error getting volume config details: %v", request_context.Id, err)
+		return nil, fmt.Errorf("error getting volume config details: %v  [%s]",  err, getContextRequestString(requestContext))
 	}
 
 	flexVolumeConfig := make(map[string]string)
