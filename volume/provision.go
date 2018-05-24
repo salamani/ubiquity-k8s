@@ -235,7 +235,7 @@ func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacit
 		return nil, fmt.Errorf("error creating volume: %v. [%s]", err, getContextRequestString(requestContext))
 	}
 
-	getVolumeConfigRequest := resources.GetVolumeConfigRequest{Name: options.PVName}
+	getVolumeConfigRequest := resources.GetVolumeConfigRequest{Name: options.PVName, Context: requestContext}
 	volumeConfig, err := p.ubiquityClient.GetVolumeConfig(getVolumeConfigRequest)
 	if err != nil {
 		return nil, fmt.Errorf("error getting volume config details: %v  [%s]",  err, getContextRequestString(requestContext))
