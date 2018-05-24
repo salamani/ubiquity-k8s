@@ -1,5 +1,7 @@
 package resources
 
+import "github.com/IBM/ubiquity/resources"
+
 const KubernetesVersion_1_5 = "1.5"
 const KubernetesVersion_1_6OrLater = "atLeast1.6"
 const ProvisionerName = "ubiquity/flex"
@@ -41,6 +43,7 @@ type FlexVolumeAttachRequest struct {
 	Host    string            `json:"host"`
 	Opts    map[string]string `json:"opts"`
 	Version string            `json:"version"`
+	Context resources.RequestContext
 }
 type FlexVolumeWaitForAttachRequest struct {
 	Name string            `json:"name"`
@@ -73,6 +76,3 @@ type FlexVolumeGetVolumeNameRequest struct {
 	Opts map[string]string `json:"opts"`
 }
 
-type RequestContext struct {
-	Id string
-}

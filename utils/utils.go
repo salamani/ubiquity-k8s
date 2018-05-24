@@ -4,8 +4,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"fmt"
 
 	"github.com/IBM/ubiquity/resources"
+	"k8s.io/apimachinery/pkg/util/uuid"
 )
 
 func LoadConfig() (resources.UbiquityPluginConfig, error) {
@@ -37,4 +39,13 @@ func LoadConfig() (resources.UbiquityPluginConfig, error) {
 	config.CredentialInfo = resources.CredentialInfo{UserName: os.Getenv("UBIQUITY_USERNAME"), Password: os.Getenv("UBIQUITY_PASSWORD")}
 
 	return config, nil
+}
+
+func GetNewRequestContext() resources.RequestContext{
+	request_uuid := fmt.Sprintf("%s", uuid.NewUUID())
+	return resources.RequestContext{Id: request_uuid}
+}
+
+func GetContextRequestString(context resources.RequestContext) string{
+	return fmt.Sprintf("request-id=%s", context.Id)
 }

@@ -32,6 +32,7 @@ import (
 	"github.com/IBM/ubiquity/remote"
 	"github.com/IBM/ubiquity/utils"
 	"github.com/IBM/ubiquity/utils/logs"
+	k8sutils "github.com/IBM/ubiquity-k8s/utils"
 	"strconv"
 )
 
@@ -70,6 +71,8 @@ type GetVolumeNameCommand struct {
 	GetVolumeName func() `short:"g" long:"getvolumename" description:"Get Volume Name"`
 }
 
+
+
 func (g *GetVolumeNameCommand) Execute(args []string) error {
 	// This GetVolumeName action in FlexVolume CLI is not relevant, we can just return not supported without logging anything.
 	response := k8sresources.FlexVolumeResponse{
@@ -88,6 +91,10 @@ type AttachCommand struct {
 func (a *AttachCommand) Execute(args []string) error {
 	var version string
 	var hostname string
+	
+	requestContext := k8sutils.GetNewRequestContext()
+	fmt.Sprintf("Starting attach command [%s]", k8sutils.GetContextRequestString(requestContext))
+	
 	if len(args) < 1 {
 
 		response := k8sresources.FlexVolumeResponse{
@@ -121,6 +128,7 @@ func (a *AttachCommand) Execute(args []string) error {
 	}
 	defer logs.InitFileLogger(logs.GetLogLevelFromString(config.LogLevel), path.Join(config.LogPath, k8sresources.UbiquityFlexLogFileName))()
 	controller, err := createController(config)
+	
 
 	if err != nil {
 		panic(fmt.Sprintf("backend %s not found", config))
@@ -135,9 +143,10 @@ func (a *AttachCommand) Execute(args []string) error {
 		return printResponse(response)
 	}
 
-	attachRequest := k8sresources.FlexVolumeAttachRequest{Name: volumeName, Host: hostname, Opts: attachRequestOpts, Version: version}
+	attachRequest := k8sresources.FlexVolumeAttachRequest{Name: volumeName, Host: hostname, Opts: attachRequestOpts, Version: version, Context: requestContext}
 
 	attachResponse := controller.Attach(attachRequest)
+	fmt.Sprintf("Finishing attach command [%s]", k8sutils.GetContextRequestString(requestContext))
 	return printResponse(attachResponse)
 }
 

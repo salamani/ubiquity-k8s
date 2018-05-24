@@ -135,7 +135,11 @@ func (c *Controller) TestUbiquity(config resources.UbiquityPluginConfig) k8sreso
 
 //Attach method attaches a volume to a host
 func (c *Controller) Attach(attachRequest k8sresources.FlexVolumeAttachRequest) k8sresources.FlexVolumeResponse {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, attachRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
+	
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", attachRequest}})
 
@@ -684,7 +688,7 @@ func (c *Controller) doAttach(attachRequest k8sresources.FlexVolumeAttachRequest
 		return c.logger.ErrorRet(&k8sVersionNotSupported{attachRequest.Version}, "failed")
 	}
 
-	ubAttachRequest := resources.AttachRequest{Name: attachRequest.Name, Host: getHost(attachRequest.Host)}
+	ubAttachRequest := resources.AttachRequest{Name: attachRequest.Name, Host: getHost(attachRequest.Host), Context: attachRequest.Context}
 	_, err := c.Client.Attach(ubAttachRequest)
 	if err != nil {
 		return c.logger.ErrorRet(err, "Client.Attach failed")
