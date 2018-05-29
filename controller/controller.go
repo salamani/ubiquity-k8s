@@ -405,7 +405,10 @@ func (c *Controller) doLegacyDetach(unmountRequest k8sresources.FlexVolumeUnmoun
 	return nil
 }
 
-func (c *Controller) getMounterForBackend(backend string) (resources.Mounter, error) {
+func (c *Controller) getMounterForBackend(backend string, requestContext resources.RequestContext) (resources.Mounter, error) {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, requestContext)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var err error
 	mounterInst, ok := c.mounterPerBackend[backend]
@@ -414,7 +417,7 @@ func (c *Controller) getMounterForBackend(backend string) (resources.Mounter, er
 		return mounterInst, nil
 	} else {
 		// mounter not exist in the controller backend list, so get it now
-		c.mounterPerBackend[backend], err = c.mounterFactory.GetMounterPerBackend(backend, c.legacyLogger, c.config)
+		c.mounterPerBackend[backend], err = c.mounterFactory.GetMounterPerBackend(backend, c.legacyLogger, c.config, requestContext)
 		if err != nil {
 			return nil, err
 		}
@@ -456,7 +459,7 @@ func (c *Controller) getMounterByPV(mountRequest k8sresources.FlexVolumeMountReq
 	if err != nil {
 		return nil, c.logger.ErrorRet(err, "GetVolume failed")
 	}
-	mounter, err := c.getMounterForBackend(volume.Backend)
+	mounter, err := c.getMounterForBackend(volume.Backend, mountRequest.Context)
 	if err != nil {
 		return nil, c.logger.ErrorRet(err, "getMounterForBackend failed")
 	}
@@ -598,7 +601,7 @@ func (c *Controller) doUnmountScbe(unmountRequest k8sresources.FlexVolumeUnmount
 
 	volume, err := c.Client.GetVolume(getVolumeRequest)
 	// TODO idempotent, if volume not exist then log warning and return success
-	mounter, err := c.getMounterForBackend(volume.Backend)
+	mounter, err := c.getMounterForBackend(volume.Backend, unmountRequest.Context)
 	if err != nil {
 		err = fmt.Errorf("Error determining mounter for volume: %s", err.Error())
 		return c.logger.ErrorRet(err, "failed")
@@ -633,7 +636,7 @@ func (c *Controller) doAfterDetach(detachRequest k8sresources.FlexVolumeDetachRe
 
     getVolumeRequest := resources.GetVolumeRequest{Name: detachRequest.Name, Context: detachRequest.Context}
     volume, err := c.Client.GetVolume(getVolumeRequest)
-    mounter, err := c.getMounterForBackend(volume.Backend)
+    mounter, err := c.getMounterForBackend(volume.Backend, detachRequest.Context)
     if err != nil {
         err = fmt.Errorf("Error determining mounter for volume: %s", err.Error())
         return c.logger.ErrorRet(err, "failed")
