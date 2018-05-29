@@ -387,6 +387,9 @@ func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountReques
 }
 
 func (c *Controller) doLegacyDetach(unmountRequest k8sresources.FlexVolumeUnmountRequest) error	{
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var err error
 
@@ -447,7 +450,7 @@ func (c *Controller) prepareUbiquityMountRequest(mountRequest k8sresources.FlexV
 		return resources.MountRequest{}, c.logger.ErrorRet(err, "failed")
 	}
 	volumeMountpoint := fmt.Sprintf(resources.PathToMountUbiquityBlockDevices, wwn)
-	ubMountRequest := resources.MountRequest{Mountpoint: volumeMountpoint, VolumeConfig: volumeConfig}
+	ubMountRequest := resources.MountRequest{Mountpoint: volumeMountpoint, VolumeConfig: volumeConfig, Context : mountRequest.Context}
 	return ubMountRequest, nil
 }
 
