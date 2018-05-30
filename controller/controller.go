@@ -324,7 +324,6 @@ func (c *Controller) Mount(mountRequest k8sresources.FlexVolumeMountRequest) k8s
 func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	// locking for concurrent rescans and reduce rescans if no need
 	c.logger.Debug("Ask for unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
@@ -339,6 +338,7 @@ func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountReques
 	c.logger.Debug("Got unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
 	defer c.unmountFlock.Unlock()
 	defer c.logger.Debug("Released unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", unmountRequest}})
@@ -433,6 +433,9 @@ func (c *Controller) prepareUbiquityMountRequest(mountRequest k8sresources.FlexV
 	/*
 	Prepare the mounter.Mount request
 	 */
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 
 	// Prepare request for mounter - step1 get volume's config from ubiquity
@@ -539,6 +542,9 @@ func (c *Controller) doAfterMount(mountRequest k8sresources.FlexVolumeMountReque
 
 	  */
 
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var k8sPVDirectoryPath string
 	var err error
