@@ -324,6 +324,7 @@ func (c *Controller) Mount(mountRequest k8sresources.FlexVolumeMountRequest) k8s
 func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	// locking for concurrent rescans and reduce rescans if no need
 	c.logger.Debug("Ask for unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
@@ -338,7 +339,7 @@ func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountReques
 	c.logger.Debug("Got unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
 	defer c.unmountFlock.Unlock()
 	defer c.logger.Debug("Released unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	
 
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", unmountRequest}})
@@ -629,7 +630,7 @@ func (c *Controller) doUnmountScbe(unmountRequest k8sresources.FlexVolumeUnmount
 		return c.logger.ErrorRet(err, "mounter.Unmount failed")
 	}
 
-	c.logger.Debug(fmt.Sprintf("Removing the slink [%s] to the real mountpoint [%s]", unmountRequest.MountPath, realMountPoint))
+	c.logger.Debug(fmt.Sprintf(  [%s] to the real mountpoint [%s]", unmountRequest.MountPath, realMountPoint))
 	// TODO idempotent, don't fail if slink not exist. But double check its slink, if not then fail with error.
 	err = c.exec.Remove(unmountRequest.MountPath)
 	if err != nil {
