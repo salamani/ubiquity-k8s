@@ -630,7 +630,7 @@ func (c *Controller) doUnmountScbe(unmountRequest k8sresources.FlexVolumeUnmount
 		return c.logger.ErrorRet(err, "mounter.Unmount failed")
 	}
 
-	c.logger.Debug(fmt.Sprintf(  [%s] to the real mountpoint [%s]", unmountRequest.MountPath, realMountPoint))
+	c.logger.Debug(fmt.Sprintf("[%s] to the real mountpoint [%s]", unmountRequest.MountPath, realMountPoint))
 	// TODO idempotent, don't fail if slink not exist. But double check its slink, if not then fail with error.
 	err = c.exec.Remove(unmountRequest.MountPath)
 	if err != nil {
