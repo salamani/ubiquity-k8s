@@ -137,7 +137,7 @@ func (c *Controller) TestUbiquity(config resources.UbiquityPluginConfig) k8sreso
 func (c *Controller) Attach(attachRequest k8sresources.FlexVolumeAttachRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, attachRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", attachRequest}})
@@ -178,7 +178,7 @@ func (c *Controller) GetVolumeName(getVolumeNameRequest k8sresources.FlexVolumeG
 func (c *Controller) WaitForAttach(waitForAttachRequest k8sresources.FlexVolumeWaitForAttachRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, waitForAttachRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", waitForAttachRequest}})
@@ -195,7 +195,7 @@ func (c *Controller) WaitForAttach(waitForAttachRequest k8sresources.FlexVolumeW
 func (c *Controller) IsAttached(isAttachedRequest k8sresources.FlexVolumeIsAttachedRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, isAttachedRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", isAttachedRequest}})
@@ -222,7 +222,7 @@ func (c *Controller) IsAttached(isAttachedRequest k8sresources.FlexVolumeIsAttac
 func (c *Controller) Detach(detachRequest k8sresources.FlexVolumeDetachRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, detachRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", detachRequest}})
@@ -256,7 +256,7 @@ func (c *Controller) Detach(detachRequest k8sresources.FlexVolumeDetachRequest) 
 func (c *Controller) MountDevice(mountDeviceRequest k8sresources.FlexVolumeMountDeviceRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, mountDeviceRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", mountDeviceRequest}})
@@ -273,7 +273,7 @@ func (c *Controller) MountDevice(mountDeviceRequest k8sresources.FlexVolumeMount
 func (c *Controller) UnmountDevice(unmountDeviceRequest k8sresources.FlexVolumeUnmountDeviceRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, unmountDeviceRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", unmountDeviceRequest}})
@@ -290,7 +290,7 @@ func (c *Controller) UnmountDevice(unmountDeviceRequest k8sresources.FlexVolumeU
 func (c *Controller) Mount(mountRequest k8sresources.FlexVolumeMountRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var response k8sresources.FlexVolumeResponse
 	c.logger.Debug("", logs.Args{{"request", mountRequest}})
@@ -324,7 +324,7 @@ func (c *Controller) Mount(mountRequest k8sresources.FlexVolumeMountRequest) k8s
 func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountRequest) k8sresources.FlexVolumeResponse {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	defer logs.GetDeleteFromMapFunc(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	// locking for concurrent rescans and reduce rescans if no need
 	c.logger.Debug("Ask for unmountFlock for mountpath", logs.Args{{"mountpath", unmountRequest.MountPath}})
@@ -388,9 +388,9 @@ func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountReques
 }
 
 func (c *Controller) doLegacyDetach(unmountRequest k8sresources.FlexVolumeUnmountRequest) error	{
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var err error
 
@@ -410,9 +410,9 @@ func (c *Controller) doLegacyDetach(unmountRequest k8sresources.FlexVolumeUnmoun
 }
 
 func (c *Controller) getMounterForBackend(backend string, requestContext resources.RequestContext) (resources.Mounter, error) {
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, requestContext)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, requestContext)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var err error
 	mounterInst, ok := c.mounterPerBackend[backend]
@@ -434,9 +434,9 @@ func (c *Controller) prepareUbiquityMountRequest(mountRequest k8sresources.FlexV
 	/*
 	Prepare the mounter.Mount request
 	 */
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 
 	// Prepare request for mounter - step1 get volume's config from ubiquity
@@ -543,9 +543,9 @@ func (c *Controller) doAfterMount(mountRequest k8sresources.FlexVolumeMountReque
 
 	  */
 
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var k8sPVDirectoryPath string
 	var err error
