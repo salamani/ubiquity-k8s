@@ -388,9 +388,6 @@ func (c *Controller) Unmount(unmountRequest k8sresources.FlexVolumeUnmountReques
 }
 
 func (c *Controller) doLegacyDetach(unmountRequest k8sresources.FlexVolumeUnmountRequest) error	{
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var err error
 
@@ -410,9 +407,6 @@ func (c *Controller) doLegacyDetach(unmountRequest k8sresources.FlexVolumeUnmoun
 }
 
 func (c *Controller) getMounterForBackend(backend string, requestContext resources.RequestContext) (resources.Mounter, error) {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, requestContext)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var err error
 	mounterInst, ok := c.mounterPerBackend[backend]
@@ -434,9 +428,6 @@ func (c *Controller) prepareUbiquityMountRequest(mountRequest k8sresources.FlexV
 	/*
 	Prepare the mounter.Mount request
 	 */
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 
 	// Prepare request for mounter - step1 get volume's config from ubiquity
@@ -543,9 +534,6 @@ func (c *Controller) doAfterMount(mountRequest k8sresources.FlexVolumeMountReque
 
 	  */
 
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer c.logger.Trace(logs.DEBUG)()
 	var k8sPVDirectoryPath string
 	var err error
