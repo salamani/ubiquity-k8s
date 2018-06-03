@@ -123,7 +123,7 @@ func (p *flexProvisioner) Provision(options controller.VolumeOptions) (*v1.Persi
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, request_context)
 	defer logs.GetDeleteFromMapFunc(go_id)
-	defer p.logger.Trace(logs.DEBUG)
+	defer p.logger.Trace(logs.DEBUG)()
 	if options.PVC == nil {
 		return nil, fmt.Errorf("options missing PVC %#v", options)
 	}
@@ -185,7 +185,7 @@ func (p *flexProvisioner) Delete(volume *v1.PersistentVolume) error {
 	go_id := logs.GetGoID()
 	logs.GoIdToRequestIdMap.Store(go_id, requestContext)
 	defer logs.GetDeleteFromMapFunc(go_id)
-	defer p.logger.Trace(logs.DEBUG, logs.Args{{"volume name", volume.Name}})
+	defer p.logger.Trace(logs.DEBUG, logs.Args{{"volume name", volume.Name}})()
 
 	if volume.Name == "" {
 		return fmt.Errorf("volume name cannot be empty %#v", volume)
@@ -213,7 +213,7 @@ func (p *flexProvisioner) Delete(volume *v1.PersistentVolume) error {
 }
 
 func (p *flexProvisioner) createVolume(options controller.VolumeOptions, capacity int64, requestContext resources.RequestContext) (map[string]string, error) {
-	defer p.logger.Trace(logs.DEBUG, logs.Args{{"volume name", options.PVName}})
+	defer p.logger.Trace(logs.DEBUG, logs.Args{{"volume name", options.PVName}})()
 
 	ubiquityParams := make(map[string]interface{})
 	if capacity != 0 {
