@@ -23,6 +23,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/IBM/ubiquity/utils/logs"
 
 	"testing"
 )
@@ -32,6 +33,7 @@ var logFile *os.File
 
 func TestController(t *testing.T) {
 	RegisterFailHandler(Fail)
+	defer logs.InitStdoutLogger(logs.DEBUG)()
 	RunSpecs(t, "Provisioner Suite")
 }
 
